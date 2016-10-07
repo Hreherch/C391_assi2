@@ -1,0 +1,16 @@
+-- assuming we inserted poi as a table already?
+
+ CREATE VIRTUAL TABLE projected_poi USING rtree(
+     id,
+     minX, maxX,
+     minY, maxY );
+
+.schema
+
+INSERT INTO projected_poi
+    SELECT id, 
+           (lat - 48.06) * (1000/.189), 
+           ((lat - 48.06) * (1000/.189)) + 10, 
+           (lon - 11.358) * (1000/.366), 
+           ((lon - 11.358) * (1000/.366)) + 10
+    FROM poi;

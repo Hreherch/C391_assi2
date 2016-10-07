@@ -1,0 +1,36 @@
+-- CREATE VIRTUAL TABLE <name> USING rtree( <column_names> );
+
+.separator "\t"
+
+DROP TABLE IF EXISTS poi;
+DROP TABLE IF EXISTS poi_tag;
+DROP TABLE IF EXISTS projected_poi;
+
+CREATE TABLE poi( id INT PRIMARY KEY,
+                  uid INT,
+                  lat FLOAT,
+                  lon FLOAT );
+
+CREATE TABLE poi_tag( id INT REFERENCES poi( id ),
+                      key TEXT,
+                      value TEXT );
+
+.schema
+
+.import poi.tsv poi
+.import poi_tag.tsv poi_tag
+
+ CREATE VIRTUAL TABLE projected_poi USING rtree(
+     id,
+     minX, maxX,
+     minY, maxY );
+
+.schema
+
+INSERT INTO projected_poi
+    SELECT id, 
+           (lat - 48.06) * (1000/.189), 
+           ((lat - 48.06) * (1000/.189)) + 10, 
+           (lon - 11.358) * (1000/.366), 
+           ((lon - 11.358) * (1000/.366)) + 10
+    FROM poi;
