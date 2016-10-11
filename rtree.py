@@ -29,8 +29,94 @@ class Square:
         rx = str(self.rightx)
         ry = str(self.righty)
         return self.name
-        
+       
 
+def findBestNode( nodeList, square ):
+    increase = []
+    nodeSquare = 0
+    for node in nodeList:
+        nodeSquare = node[0]
+        for r in node:
+            nodeSquare = nodeSquare.getContainingSquare(r)
+            
+        increase.append( nodeSquare.getContainingArea(square) - nodeSquare.getArea() )
+        
+    print( increase )
+
+
+def quadSplit( l ):
+    # PERFORMS PickSeeds >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    maxi = -1
+    maxj = -1
+    maxSize = -1
+    for i in range(5):
+        for j in range( i+1, 5):
+            test = l[i].getContainingArea(l[j])
+            test -= l[i].getArea()
+            test -= l[j].getArea()
+            if test > maxSize:
+                maxi = i + 1 
+                maxj = j + 1
+                maxSize = test
+            print( str(l[i]) + " with " + str(l[j]) + " = " + str(test) )
+            
+    print( "worst with " + str(l[maxi-1]) + " and " + str(l[maxj-1]) )
+
+    n1 = [l[maxi-1]]
+    n1_square = n1[0]
+    n2 = [l[maxj-1]]
+    n2_square = n2[0]
+    r = []
+
+    for i in range(5):
+        if i != maxi-1 and i != maxj-1:
+            r.append( l[i] )
+            
+    # PERMORMS done check >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    for alphang in range(3):
+        if (len(n1) == 1 or len(n2) == 1) and len(r) == 1:
+            if len(n1) == 1:
+                n1.append( r.pop(0) )
+            else:
+                n2.append( r.pop(0) )
+            continue
+            
+        d1_list = []
+        d2_list = []
+        # d1 = the area increase for adding a square to n1 
+        # d2 = same for n2
+        for square in r:
+            d1_list.append( n1_square.getContainingArea(square) - n1_square.getArea() )
+            d2_list.append( n2_square.getContainingArea(square) - n2_square.getArea() )
+        
+        # choose the one with max difference between d1 and d2
+        maxElm = -1
+        maxVal = -1
+        for index in range( len(d1_list)):
+            print(index)
+            val = abs(d1_list[index] - d2_list[index])
+            if val > maxVal:
+                maxElm = index
+                maxVal = val
+                
+        if d1_list[maxElm] > d2_list[maxElm]:
+            n2.append( r.pop(maxElm) )
+            n2_square = n2_square.getContainingSquare(n2[-1])
+            print( "added " + str(n2[-1]) + " to n2" )
+        else:
+            n1.append( r.pop(maxElm) )
+            n1_square = n1_square.getContainingSquare(n1[-1])
+            print( "added " + str(n1[-1]) + " to n1" )
+            
+    print( "nodes in n1:" )
+    for square in n1:
+        print( square )
+        
+    print( "" )
+    print( "nodes in n2:" )
+    for square in n2:
+        print( square )
+        
 r1 = Square(  2, 25,  5, 23, "r1" )
 r2 = Square(  3, 20,  7, 17, "r2" )
 r3 = Square(  1, 13,  4, 15, "r3" )
@@ -51,75 +137,8 @@ r14 = Square(13, 22, 17, 19, "r14" )
 
 # SETUP WHAT YOU WISH TO LOOK AT <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 # MAX 5!!
-l = [r6, r8, r9, r10, r11]
+l = [r6,r8,r9,r10,r11]
+#quadSplit( l ) # uncomment to use quadSplit with l
 
-
-# PERFORMS PickSeeds >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-maxi = -1
-maxj = -1
-maxSize = -1
-for i in range(5):
-    for j in range( i+1, 5):
-        test = l[i].getContainingArea(l[j])
-        test -= l[i].getArea()
-        test -= l[j].getArea()
-        if test > maxSize:
-            maxi = i + 1 
-            maxj = j + 1
-            maxSize = test
-        print( str(l[i]) + " with " + str(l[j]) + " = " + str(test) )
-        
-print( "worst with " + str(l[maxi-1]) + " and " + str(l[maxj-1]) )
-
-n1 = [l[maxi-1]]
-n1_square = n1[0]
-n2 = [l[maxj-1]]
-n2_square = n2[0]
-r = []
-
-for i in range(5):
-    if i != maxi-1 and i != maxj-1:
-        r.append( l[i] )
-        
-# PERMORMS done check >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-for alphang in range(3):
-    if (len(n1) == 1 or len(n2) == 1) and len(r) == 1:
-        if len(n1) == 1:
-            n1.append( r.pop(0) )
-        else:
-            n2.append( r.pop(0) )
-        continue
-        
-    d1_list = []
-    d2_list = []
-    # d1 = the area increase for adding a square to n1 
-    # d2 = same for n2
-    for square in r:
-        d1_list.append( n1_square.getContainingArea(square) - n1_square.getArea() )
-        d2_list.append( n2_square.getContainingArea(square) - n2_square.getArea() )
-    
-    # choose the one with max difference between d1 and d2
-    maxElm = -1
-    maxVal = -1
-    for index in range( len(d1_list)):
-        print(index)
-        val = abs(d1_list[index] - d2_list[index])
-        if val > maxVal:
-            maxElm = index
-            maxVal = val
-            
-    if d1_list[maxElm] > d2_list[maxElm]:
-        n2.append( r.pop(maxElm) )
-        n2_square = n2_square.getContainingSquare(n2[-1])
-    else:
-        n1.append( r.pop(maxElm) )
-        n1_square = n1_square.getContainingSquare(n1[-1])
-        
-print( "nodes in n1:" )
-for square in n1:
-    print( square )
-    
-print( "" )
-print( "nodes in n2:" )
-for square in n2:
-    print( square )
+nodeList = [[r1, r2, r5], [r3,r4, r7], [r8,r9,r10, r13], [r6,r11, r12, r14]]
+findBestNode( nodeList, r14 ) 
