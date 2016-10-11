@@ -7,7 +7,6 @@ import turtle
 import random
 
 def square ( turtle, topx, topy, botx, boty ):
-    input();
     i = 16
     topx *= i
     topy *= i
@@ -43,18 +42,14 @@ win = turtle.Screen()
 turtt = turtle.Turtle()
 turtt.speed( 0 )
 cartGrid( turtt )
-turtt.speed(1)
 square( turtt, 2, 25, 5, 23 )
 square( turtt, 3, 20, 7, 17 )
 square( turtt, 1, 13, 4, 15 )
 square( turtt, 1, 3, 4, 0 )
 square( turtt, 6, 24, 9, 21 )
 square( turtt, 7, 20, 9, 15 )
-square( turtt, 6, 8, 13, 3 )
+square( turtt, 6, 7, 13, 3 )
 square( turtt, 17, 22, 20, 9 )
-square( turtt, 19, 12, 24, 9 )
-square( turtt, 19, 8, 23, 6 )
-square( turtt, 21, 25, 26, 21 )
 square( turtt, 20, 17, 30, 15 )
 square( turtt, 28, 16, 25, 12 )
 square( turtt, 13, 22, 17, 19 )
