@@ -119,7 +119,7 @@ def quadSplit( l ):
         
 r1 = Square(  2, 25,  5, 23, "r1" )
 r2 = Square(  3, 20,  7, 17, "r2" )
-r3 = Square(  1, 13,  4, 15, "r3" )
+r3 = Square(  1, 13,  4, 11, "r3" )
 r4 = Square(  1,  3,  4,  0, "r4" )
 r5 = Square(  6, 24,  9, 21, "r5" )
 r6 = Square(  7, 20,  9, 15, "r6" )
@@ -137,8 +137,8 @@ r14 = Square(13, 22, 17, 19, "r14" )
 
 # SETUP WHAT YOU WISH TO LOOK AT <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 # MAX 5!!
-l = [r6,r8,r9,r10,r11]
-#quadSplit( l ) # uncomment to use quadSplit with l
+l = [r1,r2,r3,r4,r5]
+quadSplit( l ) # uncomment to use quadSplit with l
 
-nodeList = [[r1, r2, r5], [r3,r4, r7], [r8,r9,r10, r13], [r6,r11, r12, r14]]
-findBestNode( nodeList, r14 ) 
+nodeList = [[r1, r2, r5], [r3,r4]]
+#findBestNode( nodeList, r14 ) 

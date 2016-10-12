@@ -7,7 +7,6 @@ import turtle
 import random
 
 def square ( turtle, topx, topy, botx, boty ):
-    input();
     i = 16
     topx *= i
     topy *= i
