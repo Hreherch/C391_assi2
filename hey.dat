@@ -1,0 +1,26 @@
+DROP TABLE IF EXISTS nodes;
+DROP TABLE IF EXISTS edges;
+
+CREATE TABLE nodes( id INT PRIMARY KEY );
+
+CREATE TABLE edges( from_id INT, to_id INT );
+
+.schema
+
+INSERT INTO nodes VALUES( 1 );
+INSERT INTO nodes VALUES( 2 );
+INSERT INTO nodes VALUES( 3 );
+
+INSERT INTO edges VALUES( 1, 2 );
+INSERT INTO edges VALUES( 2, 3 );
+INSERT INTO edges VALUES( 3, 1 );
+
+WITH RECURSIVE connections( a, b ) AS
+(
+    SELECT 1, 2
+        UNION ALL
+    SELECT connections.b, edges.to_id
+    FROM connections, edges
+    WHERE connections.b = edges.from_id
+)
+SELECT * FROM connections;
