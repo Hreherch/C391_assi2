@@ -1,4 +1,5 @@
 -- assuming we inserted poi as a table already
+DROP TABLE IF EXISTS projected_poi;
 
  CREATE VIRTUAL TABLE projected_poi USING rtree(
      id,
