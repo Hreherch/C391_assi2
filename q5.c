@@ -21,7 +21,7 @@ void makeCartesianIndex( sqlite3 *db ) {
     sqlite3_exec( db, sql_str, NULL, NULL, NULL );
 }
 
-double rTree_test( sqlite3 *db, int minX, int maxX, int maxY, int minY ) {
+double rTree_test( sqlite3 *db, double minX, double maxX, double maxY, double minY ) {
     clock_t start, end;
     char sql_buffer[1000] = {};
     char *sql_str;
@@ -29,10 +29,10 @@ double rTree_test( sqlite3 *db, int minX, int maxX, int maxY, int minY ) {
     sql_str = "CREATE TABLE bounded_by_rect AS \
                     SELECT  id \
                     FROM projected_poi ppoi\
-                    WHERE minX >= %d\
-                      AND maxY <= %d\
-                      AND maxX <= %d\
-                      AND minY >= %d;";
+                    WHERE minX >= %lf\
+                      AND maxY <= %lf\
+                      AND maxX <= %lf\
+                      AND minY >= %lf;";
     
     sprintf( sql_buffer, sql_str, minX, maxY, maxX, minY );
 
@@ -43,17 +43,17 @@ double rTree_test( sqlite3 *db, int minX, int maxX, int maxY, int minY ) {
     return (double) (end - start) / CLOCKS_PER_SEC;
 }
 
-double index_test( sqlite3 *db, int minX, int maxX, int maxY, int minY ) {
+double index_test( sqlite3 *db, double minX, double maxX, double maxY, double minY ) {
     clock_t start, end;
     char sql_buffer[1000] = {};
     char *sql_str;
 
     sql_str = "SELECT * \
                FROM projected_poi_regTable \
-               WHERE minX >= %d \
-                 AND maxX <= %d \
-                 AND minY >= %d \
-                 AND maxY <= %d;";
+               WHERE minX >= %lf \
+                 AND maxX <= %lf \
+                 AND minY >= %lf \
+                 AND maxY <= %lf;";
 
     sprintf( sql_buffer, sql_str, minX, maxX, minY, maxY );
 
@@ -69,7 +69,7 @@ int main( int argc, char **argv ) {
     //sqlite3_stmt *sql_stmt;
     char *sql_str;
     int random_dim = rand() % 1001;
-    int length = 0;
+    double length = 0;
     srand(time(NULL));
 
     if ( argc != 2 ) {
@@ -78,14 +78,20 @@ int main( int argc, char **argv ) {
     }
 
     if( 0 != sqlite3_open( DB_NAME, &db ) ) {
-        fprintf( stderr, "Failed to open DB(is DB in folder?)" );
+        fprintf( stderr, "Failed to open DB(is DB in folder?)\n" );
         sqlite3_close( db );
         return( 1 );
     }
 
     makeCartesianIndex( db );
 
-    length = atoi( argv[1] );
+    length = atof( argv[1] );
+    
+    if (length > 1000 || length <= 0) {
+        fprintf( stderr, "0 < I <= 1000\n" );
+        sqlite3_close( db );
+        return( 1 );
+    }
 
     int i = 0;
     int j = 0;
@@ -95,11 +101,21 @@ int main( int argc, char **argv ) {
         double rTree_timeForSquare = 0;
         double index_timeForSquare = 0;   
         
+        int modLength = (int) length;
+        
         // make a square
-        int minX = rand() % (1001 - length);
-        int minY = rand() % (1001 - length);
-        int maxX = minX + length;
-        int maxY = minY + length;
+        double minX;
+        double minY;
+        if (modLength != 1000) {
+            minX = rand() % (1000 - modLength);
+            minY = rand() % (1000 - modLength);
+        }
+        else {
+            minX = 0;
+            minY = 0;
+        }
+        double maxX = minX + length;
+        double maxY = minY + length;
 
         for ( j = 0; j < 20; j++ ) {
             rTree_timeForSquare += rTree_test( db, minX, maxX, maxY, minY );
@@ -118,7 +134,7 @@ int main( int argc, char **argv ) {
 
     //printf( "%lf, %lf\n", rTreeAvgTime, indexAvgTime );
 
-    printf( "\nParameter l: %d\n\n", length);
+    printf( "\nParameter l: %lf\n\n", length);
     printf( "Average runtime with r-tree: %lfms\n\n", rTreeAvgTime*1000 );
     printf( "Average runtime without r-tree: %lfms\n\n", indexAvgTime*1000 );
 
