@@ -43,6 +43,36 @@ double rTree_test( sqlite3 *db, double minX, double maxX, double maxY, double mi
     return (double) (end - start) / CLOCKS_PER_SEC;
 }
 
+void makeSquares( double **squares, double length ) {
+    int i = 0;
+    for (i = 0; i < 100; i++ ) {
+        squares[i] = malloc( sizeof(double) * 4 );
+        double maxX = 1000;
+        double maxY = 1000;
+        double minX = 0;
+        double minY = 0;
+        int modLength = (int) length;
+        if (length != 1000) {
+            minX = (rand() % (1000 * 100) - (modLength * 100) ) / 100;
+            minY = (rand() % (1000 * 100) - (modLength * 100) ) / 100;
+            maxX = minX + length;
+            maxY = minY + length;
+        }
+        squares[i][0] = minX;
+        squares[i][1] = maxX;
+        squares[i][2] = minY;
+        squares[i][3] = maxY;
+        //printf( "made sqr: \n\tminX:%lf\n\tmaxX:%lf\n\tminY%lf\n\tmaxY:%lf\n", minX, maxX, minY, maxY );
+    }
+}
+
+void freeSquares( double **squares ) {
+    int i = 0;
+    for ( i = 0; i < 100; i++ ) {
+        free( squares[i] );
+    }
+}
+
 double index_test( sqlite3 *db, double minX, double maxX, double maxY, double minY ) {
     clock_t start, end;
     char sql_buffer[1000] = {};
@@ -88,49 +118,49 @@ int main( int argc, char **argv ) {
     length = atof( argv[1] );
     
     if (length > 1000 || length <= 0) {
-        fprintf( stderr, "0 < I <= 1000\n" );
+        fprintf( stderr, "0 < side_length <= 1000\n" );
         sqlite3_close( db );
         return( 1 );
     }
+    
+    double *squares[100];
+    double rTree_squareTime[100] = {};
+    double index_squareTime[100] = {};
+    
+    makeSquares( squares, length );
 
     int i = 0;
     int j = 0;
     double rTree_totalime = 0;
     double index_totalTime = 0;
-    for ( i = 0; i < 100; i++ ) {
-        double rTree_timeForSquare = 0;
-        double index_timeForSquare = 0;   
-        
-        int modLength = (int) length;
-        
-        // make a square
-        double minX;
-        double minY;
-        if (modLength != 1000) {
-            minX = rand() % (1000 - modLength);
-            minY = rand() % (1000 - modLength);
-        }
-        else {
-            minX = 0;
-            minY = 0;
-        }
-        double maxX = minX + length;
-        double maxY = minY + length;
+    for ( i = 0; i < 20; i++ ) {
 
-        for ( j = 0; j < 20; j++ ) {
-            rTree_timeForSquare += rTree_test( db, minX, maxX, maxY, minY );
 
-            index_timeForSquare += index_test( db, minX, maxX, maxY, minY );
-        } // 20 times for square loop
+        for ( j = 0; j < 100; j++ ) {
+            double minX = squares[j][0];
+            double maxX = squares[j][1];
+            double minY = squares[j][2];
+            double maxY = squares[j][3];
+            //printf( "testing: %lf", minY );
+            rTree_squareTime[j] += rTree_test( db, minX, maxX, maxY, minY );
 
-        rTree_totalime += (rTree_timeForSquare/20);
-        index_totalTime += (index_timeForSquare/20);
-        
-
-    } // 100 square for loop 
+            index_squareTime[j] += index_test( db, minX, maxX, maxY, minY );
+        } // iterate over 100 squares
+      
+    } // do 100 iterations 20 times
     
-    double rTreeAvgTime = rTree_totalime / 100;
-    double indexAvgTime = index_totalTime / 100;
+    double rTreeAvgTime = 0;
+    double indexAvgTime = 0;
+    
+    for ( i = 0; i < 100; i++ ) {
+        rTreeAvgTime += rTree_squareTime[i]/20;
+        indexAvgTime += index_squareTime[i]/20;
+    }
+    
+    rTreeAvgTime /= 100;
+    indexAvgTime /= 100;
+    
+    freeSquares( squares );
 
     //printf( "%lf, %lf\n", rTreeAvgTime, indexAvgTime );
 
