@@ -14,7 +14,9 @@ int display(void *data, int argc, char **argv, char **col_name) {
      printf("\n");
      return 0;
 }
+
 sqlite3* db;
+struct node active_branch_list[51];
 // does a branch list thing
 void genBranchList( point search_point, node node ) {
     // TODO make this the general case of nodeno, use node.nodeno instaead of 1
