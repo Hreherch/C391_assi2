@@ -78,15 +78,15 @@ struct point {
 //   // printf("node pparent = %d\n", node.pParent);
 // }
 
-// int display(void *data, int argc, char **argv, char **col_name) {
-//     int i;
-//     printf("%s", (char*)data);
-//     for (i = 0; i < argc; i++) {
-//         printf("%s = %s, ", col_name[i], argv[i] ? argv[i]: "NULL");
-//     }
-//     printf("\n");
-//     return 0;
-// }   
+int display(void *data, int argc, char **argv, char **col_name) {
+     int i;
+     printf("%s", (char*)data);
+     for (i = 0; i < argc; i++) {
+         printf("%s = %s, ", col_name[i], argv[i] ? argv[i]: "NULL");
+     }
+     printf("\n");
+     return 0;
+}   
 
 int main( int argc, char **argv ) {
     struct point search_point;
@@ -111,8 +111,8 @@ int main( int argc, char **argv ) {
     
     // sqlite3_create_function( db, "GETNODEDATA", 2, SQLITE_UTF8, NULL, getNodeData, NULL, NULL );
 
-    char *sql_str = " SELECT rtreenode(nodeno, data) FROM projected_poi_node WHERE nodeno = 54;";
-    sqlite3_exec( db, sql_str, NULL, NULL, NULL );
+    char *sql_str = " SELECT rtreenode(2, data) FROM projected_poi_node WHERE nodeno = 1;";
+    sqlite3_exec( db, sql_str, display, NULL, NULL );
     search_point.x = atof(argv[1]);
     search_point.y = atof(argv[2]);
 
