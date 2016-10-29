@@ -1,30 +1,41 @@
-
-struct node {
-    long id;
-    int numChildren;
-    long children[51];
-}
+#include "NearestNeighbour.h"
 
 // Returns the point's distance to an object (a rectangle)
-double objectDist( /* Point, Object */ ) {
+//double objectDist( /* Point, Object */ ) {
     
-    return 0.0
+    //return 0.0
+//}
+int display(void *data, int argc, char **argv, char **col_name) {
+     int i;
+     printf("%s", (char*)data);
+     for (i = 0; i < argc; i++) {
+         printf("%s = %s", col_name[i], argv[i] ? argv[i]: "NULL");
+     }
+     printf("\n");
+     return 0;
 }
-
 // does a branch list thing
-void genBranchList( /* Point, Node, branchlist */ ) {
-    
+void genBranchList( point search_point, node node ) {
+    // TODO make this the general case of nodeno, use node.nodeno instaead of 1
+    char *sql_str = "SELECT rtreenode(2, data) FROM projected_poi_node WHERE nodeno = 1;";
+    char result_str[10000];
+    memset(result_str, 0, sizeof(result_str));
+
+    // execute the query 
+    sqlite3_exec(db, sql_str, NULL, NULL, NULL);
+    printf("%s\n", result_str);
+    // Strtok the string 
 }
 
-void sortBranchList( /* branchList */ ) {
+//void sortBranchList( /* branchList */ ) {
     
-}
+//}
 
-void pruneBranchList( /* Node, Point, Nearest, branchList */ ) {
+//void pruneBranchList( /* Node, Point, Nearest, branchList */ ) {
     
-}
+//}
 
-void findNearestNeighbour( sqlite3 *db /* node, point, nearest, K */ ) {
+//void findNearestNeighbour( sqlite3 *db /* node, point, nearest, K */ ) {
     // Parameters
     /* current node, 
     search query, 
@@ -61,5 +72,5 @@ void findNearestNeighbour( sqlite3 *db /* node, point, nearest, K */ ) {
             // prune UPWARD
             // last = pruneBranchList( node, point, nearest, branchList )
            
-}
+//}
     
