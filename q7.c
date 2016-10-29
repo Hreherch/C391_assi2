@@ -28,7 +28,7 @@ int main( int argc, char **argv ) {
     // char *sql_str;
 
     if ( argc != 3 ) {
-        fprintf( stderr, "usage: ./q7 x1 y1" );
+        fprintf( stderr, "usage: ./q7 x1 y1\n" );
         return( 1 );
     }
 
