@@ -14,6 +14,7 @@ int display(void *data, int argc, char **argv, char **col_name) {
      printf("\n");
      return 0;
 }
+sqlite3* db;
 // does a branch list thing
 void genBranchList( point search_point, node node ) {
     // TODO make this the general case of nodeno, use node.nodeno instaead of 1
@@ -22,8 +23,8 @@ void genBranchList( point search_point, node node ) {
     memset(result_str, 0, sizeof(result_str));
 
     // execute the query 
-    sqlite3_exec(db, sql_str, NULL, NULL, NULL);
-    printf("%s\n", result_str);
+    sqlite3_exec(db, sql_str, display, NULL, NULL);
+    //printf("%s\n", result_str);
     // Strtok the string 
 }
 

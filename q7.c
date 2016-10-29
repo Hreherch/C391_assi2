@@ -79,7 +79,6 @@
    
 
 // global pointer to the database
-
 int main( int argc, char **argv ) {
     struct point search_point;
 
@@ -111,6 +110,7 @@ int main( int argc, char **argv ) {
     search_point.x = atof(argv[1]);
     search_point.y = atof(argv[2]);
     genBranchList( search_point, node );
+    //comment
 
 
 
