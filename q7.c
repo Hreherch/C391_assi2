@@ -38,7 +38,7 @@ int main( int argc, char **argv ) {
         return( 1 );
     }
 
-    char *sql_str = " SELECT rtreenode(2, data) FROM projected_poi_node WHERE nodeno = 1;";
+    char *sql_str = " SELECT rtreenode(2, data) FROM projected_poi_node WHERE nodeno = 54;";
     sqlite3_exec( db, sql_str, display, NULL, NULL );
     search_point.x = atof(argv[1]);
     search_point.y = atof(argv[2]);
