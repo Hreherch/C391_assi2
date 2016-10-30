@@ -12,6 +12,7 @@ int main( int argc, char **argv ) {
 
     search_point.x = atof(argv[1]);
     search_point.y = atof(argv[2]);
+
     
     findNearestNeighbour( search_point, 1 );
     

@@ -9,6 +9,8 @@
 #define DB_NAME "A2.db"
 
 // structs
+
+// We call this a "node" but in our program it represents both a node and an object.
 typedef struct node node;
 struct node {
     long id;
@@ -16,6 +18,9 @@ struct node {
     double minX;
     double maxY;
     double minY;
+    
+    double minDist;
+    double minmaxDist;
 };
 
 typedef struct nearestN {
@@ -33,6 +38,6 @@ struct point {
 int display(void *data, int argc, char **argv, char **col_name);
 
 // No
-void genBranchList( sqlite3 *db, point p, node parentNode, node *branchList );
+int genBranchList( sqlite3 *db, point p, node parentNode, node *branchList );
 
 #endif 
