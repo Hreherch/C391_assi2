@@ -1,25 +1,27 @@
-
-
 #ifndef NEARESTNEIGHBOUR_H
 #define NEARESTNEIGHBOUR_H
 #include "sqlite3.h"
 #include <string.h>
 #include <stdio.h>
+#include <stdlib.h>
+
+// MACRO DEFINITIONS
+#define DB_NAME "A2.db"
 
 // structs
 typedef struct node node;
 struct node {
-    long nodeno;
-    int numChildren;
-    long children[51];
+    long id;
+    double maxX;
+    double minX;
+    double maxY;
+    double minY;
 };
 
-struct dimensions {
-    double x1;
-    double x2;
-    double y1;
-    double y2;
-};
+typedef struct nearestN {
+    long id;
+    double distance;
+} nearestN;
 
 typedef struct point point;
 struct point {
@@ -27,10 +29,10 @@ struct point {
     double y;
 };
 
-// the global active branch list 
-extern struct node active_branch_list[51];
-extern sqlite3 *db;
+// No.
 int display(void *data, int argc, char **argv, char **col_name);
-void genBranchList(point search_point, node node);
+
+// No
+void genBranchList( sqlite3 *db, point p, node parentNode, node *branchList );
 
 #endif 
