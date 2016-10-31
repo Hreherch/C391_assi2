@@ -1,39 +1,31 @@
 balisnom@ohaton:~/cmput391/C391_assi2>./q5 25
-
-Parameter l: 25
-
-Average runtime with r-tree: 0.010278ms
-
-Average runtime without r-tree: 5.776203ms
+Parameter l: 25.000000
+Average runtime with r-tree: 0.010619ms
+Average runtime without r-tree: 5.193335ms
 
 balisnom@ohaton:~/cmput391/C391_assi2>./q5 50
-
-Parameter l: 50
-
-Average runtime with r-tree: 0.010382ms
-
-Average runtime without r-tree: 6.190442ms
+Parameter l: 50.000000
+Average runtime with r-tree: 0.010756ms
+Average runtime without r-tree: 6.176570ms
 
 balisnom@ohaton:~/cmput391/C391_assi2>./q5 75
-
-Parameter l: 75
-
-Average runtime with r-tree: 0.010602ms
-
-Average runtime without r-tree: 6.650435ms
+Parameter l: 75.000000
+Average runtime with r-tree: 0.011637ms
+Average runtime without r-tree: 7.155551ms
 
 balisnom@ohaton:~/cmput391/C391_assi2>./q5 100
-
-Parameter l: 100
-
-Average runtime with r-tree: 0.010767ms
-
-Average runtime without r-tree: 7.985962ms
+Parameter l: 100.000000
+Average runtime with r-tree: 0.011487ms
+Average runtime without r-tree: 8.207631ms
 
 balisnom@ohaton:~/cmput391/C391_assi2>./q5 125
+Parameter l: 125.000000
+Average runtime with r-tree: 0.012195ms
+Average runtime without r-tree: 9.046527ms
 
-Parameter l: 125
-
-Average runtime with r-tree: 0.011194ms
-
-Average runtime without r-tree: 8.216378ms
+It seems that as l increases the amount of time taken to find the total number
+of objects in a square of lxl size increases linearly with the size of l using
+standard SQlite indices of each of the individual Carteisan coordinates of the
+POIs. The R-tree index performs significantly better, performing the same task
+without a linearly increasing time, in fact, the time to perform the task 
+remains constant throughout the values of l. We conclude that the r-tree performs better in general for spacial data compared to regular indices. 
