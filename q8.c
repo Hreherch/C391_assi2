@@ -1,26 +1,21 @@
-#include "sqlite3.h"
-#include <string.h>
-#include <stdio.h>
-#include <math.h>
+// INCLUDE STATEMENTS
+#include "NearestNeighbour.h"
 
-#define DB_NAME "A2.db"
-
+// global pointer to the database
 int main( int argc, char **argv ) {
     struct point search_point;
-    sqlite3 *db;
-    //sqlite3_stmt *sql_stmt;
-    // char *sql_str;
 
     if ( argc != 4 ) {
         fprintf( stderr, "usage: ./q8 x1 y1 k\n" );
         return( 1 );
     }
 
-    if( 0 != sqlite3_open( DB_NAME, &db ) ) {
-        fprintf( stderr, "Failed to open DB(is DB in folder?)\n" );
-        sqlite3_close( db );
-        return( 1 );
-    }
+    search_point.x = atof(argv[1]);
+    search_point.y = atof(argv[2]);
 
-    return 0;
+    int k = atoi( argv[3] );
+    
+    findNearestNeighbour( search_point, k );
+    
+    return( 0 );
 }

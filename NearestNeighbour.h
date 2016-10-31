@@ -4,9 +4,13 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <float.h>
 
 // MACRO DEFINITIONS
 #define DB_NAME "A2.db"
+
+#define DOWNWARD_PRUNE 420
+#define UPWARD_PRUNE 469
 
 // structs
 

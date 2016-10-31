@@ -1,5 +1,9 @@
 #include "NearestNeighbour.h"
 
+/* = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+ * Function: 
+ * = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+ */
 // quicksort function to sort branchList
 int compareFunct( const void *a, const void *b ) {
     double temp = (((node*)a)->minDist - ((node*)b)->minDist);
@@ -8,6 +12,10 @@ int compareFunct( const void *a, const void *b ) {
     else { return 0; }
 }
 
+/* = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+ * Function: 
+ * = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+ */
 // calculates minmaxdist for a node and puts the information inside the node.
 void minmaxDist( node *aNode, point p ) {
     // Do not need to worry about summation, as n=2. There is only two eqns to calculate,
@@ -32,8 +40,13 @@ void minmaxDist( node *aNode, point p ) {
     
     // set the one that's smaller to be minmaxdist
     aNode->minmaxDist = (minmaxdist_1 < minmaxdist_2) ? minmaxdist_1 : minmaxdist_2;
+    //printf( "node: %ld ... minmaxDist: %lf\n", aNode->id, aNode->minmaxDist );
 }
 
+/* = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+ * Function: 
+ * = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+ */
 // calculates mindist (which is also the mindist between any rectangle and a point)
 // for either a node or a object (which uses the same type as node)
 void mindist( node *aNode, point p ) {
@@ -52,14 +65,17 @@ void mindist( node *aNode, point p ) {
     double sum1 = (p.x - rx); 
     double sum2 = (p.y - ry);
     
-    printf( "rect %ld: %lf %lf %lf %lf\n", aNode->id, aNode->minX, aNode->maxX, aNode->minY, aNode->maxY );
-    printf( "point x=%lf, y=%lf\n", p.x, p.y );
+    //printf( "rect %ld: %lf %lf %lf %lf\n", aNode->id, aNode->minX, aNode->maxX, aNode->minY, aNode->maxY );
+    //printf( "point x=%lf, y=%lf\n", p.x, p.y );
    
     aNode->minDist = (sum1 * sum1) + (sum2 * sum2);
-    printf( "mindist=%lf\n", aNode->minDist );
+    //printf( "mindist=%lf\n", aNode->minDist );
 }
 
-
+/* = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+ * Function: 
+ * = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+ */
 // Populates the branchList (void *data) with information from the rtree node query
 int callback(void *data, int argc, char **argv, char **col_name) {
     int i = 0;
@@ -85,7 +101,7 @@ int callback(void *data, int argc, char **argv, char **col_name) {
         
         // on objects we only calculate mindist, so skip the calculation of minmaxdist
         // (because this equals the distance to the rectangle)
-        if ( branchList[i].id > 2000 ) {
+        if ( branchList[i].id < 2000 ) {
             minmaxDist( &(branchList[i]), p );
         }
         mindist( &(branchList[i]), p );
@@ -100,6 +116,10 @@ int callback(void *data, int argc, char **argv, char **col_name) {
 }
 
 
+/* = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+ * Function: 
+ * = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+ */
 int genBranchList( sqlite3 *db, point p, node parentNode, node *branchList ) {
     // TODO make this the general case of nodeno, use node.nodeno instaead of 1
     char *sql_str = "SELECT rtreenode(2, data) FROM projected_poi_node WHERE nodeno = %d;";
@@ -121,14 +141,75 @@ int genBranchList( sqlite3 *db, point p, node parentNode, node *branchList ) {
     return i + 1;
 } 
 
-void sortBranchList( node *branchList ) {
+/* = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+ * Function: 
+ * = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+ */
+// prunes branch list accroding to 3 rules, depends on upward or downward mode ;)
+void pruneBranchList( nearestN **nearest, node *branchList, int last, int mode ) {
+    // pruning type one.
+    int i;
     
+    if( mode = DOWNWARD_PRUNE ) {
+        // find the minimum minmaxDist in all nodes
+        double min_minmaxdist = branchList[0].minmaxDist;
+        for( i = 1; i < last; i++ ) {
+            if( branchList[i].minmaxDist < min_minmaxdist ) { 
+                min_minmaxdist = branchList[i].minmaxDist; 
+            }
+        } 
+        
+        //printf( "found min_minmaxDist=%lf\n", min_minmaxdist );
+        
+        // prune branches with mindist > min_minmaxdist
+        for( i = 0; i < last; i++ ) {
+            if (branchList[i].minDist > min_minmaxdist ) {
+                //printf( "pruned node %ld\n", branchList[i].id );
+                branchList[i].id = 0; // recall that we skip nodes with id==0 
+            }
+        }
+        
+        // we really don't understand the point of using the second downward pruning method
+        // because we already prune based on the smallest minmaxdist, which is essentially
+        // the same 
+    }
+    
+    // upward pruning based on object(s) found
+    for( i = 0; i < last; i++ ) {
+        if ( branchList[i].minDist > nearest[0]->distance ) {
+            branchList[i].id = 0; // recall that we skip nodes with id==0 
+        }
+    }
 }
 
-//void pruneBranchList( /* Node, Point, Nearest, branchList */ ) {
+/* = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+ * Function: 
+ * = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+ */
+void newNearest( nearestN **nearest, node newObject, int k ) {
+    int i = 0;
     
-//}
+    for ( i = 0; i < k; i++ ) {
+        if ( i == k-1 ) { break; } // maximal index, it's the newest smallest distance
+        // If the next node has a larger distance than this new object
+        // move it back one. We stop when i = the position the new node should be in
+        if ( nearest[i+1]->distance > newObject.minDist ) {
+           nearest[i]->id = nearest[i+1]->id;
+           nearest[i]->distance = nearest[i+1]->distance;
+        } else {
+            break;
+        }
+    }
+    
+    nearest[i]->id = newObject.id;
+    nearest[i]->distance = newObject.minDist;
+    printf( "new nearest id: %ld with distance: %lf\n", nearest[i]->id, nearest[i]->distance );
+}
 
+/* = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+ * Function: 
+ * = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+ */
 void nearestNeighbourSearch( sqlite3 *db,       /* The database for the R-Tree */
                            node currentNode,    /* The current node being explored */
                            point p,             /* The point being queried */
@@ -154,40 +235,48 @@ void nearestNeighbourSearch( sqlite3 *db,       /* The database for the R-Tree *
     // get the objects or children node(s) of the currentNode
     last = genBranchList( db, p, currentNode, branchList );
     
-    if ( branchList[0].id > 2000 ) { // base case: in leaf node
-        //printf( "Hit child node in %ld, returning\n", currentNode.id );
+    // base case: in leaf node
+    if ( branchList[0].id > 2000 ) {
         // for child in Node:
-            // dist = objectDist
-            // if (dist < Nearest_dist ):
-                //Nearest neighbour = object
-                // nearestdsit = dist
-        return;
-      
+        for( i = 0; i < last; i++ ) {
+            // get the distance of the object and see if it's smaller than the current largest distance of objects.
+            double dist = branchList[i].minDist;
+            if ( dist < nearest[0]->distance ) {
+                newNearest( nearest, branchList[i], k );
+            }
+        }
+        return; // nothing else to do in leaf node.
     }
-    else { // Non-base case: not leaf node. (order, prune, then visit)
+    // Non-base case: not leaf node. (order, prune, then visit)
+    else { 
         qsort( branchList, last, sizeof( node ), compareFunct );
         
         // prune DOWNWARD
-        // last = pruneBranchList( Node, Point, Nearest, branchList )
+        pruneBranchList( nearest, branchList, last, DOWNWARD_PRUNE );
             
         // visit children nodes in branchList
         for( i = 0; i < 51; i++ ) {
             // Skip element b/c id==0 means to skip (or that the node doesn't exist)
             if( branchList[i].id == 0 ) {
-                printf( "done exploring %ld's children\n", currentNode.id );
                 continue;
             }
             
-            printf( "%ld: mindist: %lf\n", branchList[i].id, branchList[i].minDist );
+            //printf( "%ld: mindist: %lf\n", branchList[i].id, branchList[i].minDist );
             
             nearestNeighbourSearch( db, branchList[i], p, nearest, k );
         
             // prune UPWARD
-            // last = pruneBranchList( node, point, nearest, branchList )
+            pruneBranchList( nearest, branchList, last, UPWARD_PRUNE );
+            
         } // For (children in currentNode)
+        printf( "done exploring %ld's children\n", currentNode.id );
     }
 }
 
+/* = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+ * Function: 
+ * = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+ */
 void findNearestNeighbour( point query_point, int k ) {
     node rootNode = {};
     sqlite3 *db;
@@ -199,7 +288,7 @@ void findNearestNeighbour( point query_point, int k ) {
     for( i = 0; i < k; i++ ) {
         nearest[i] = calloc( 1, sizeof(nearestN) );
         nearest[i]->id = -1;
-        nearest[i]->distance = 100000;
+        nearest[i]->distance = DBL_MAX;
     }
     
     // init parent node, don't really need this but y'know why not
@@ -217,7 +306,10 @@ void findNearestNeighbour( point query_point, int k ) {
     // begin the recursive alg
     nearestNeighbourSearch( db, rootNode, query_point, nearest, k );
     
-    // TODO need to do something here to report k nearest...
+    // report k nearest
+    for ( i = 0; i < k; i++ ) {
+        printf( "#%d: id=%ld with d=%lf\n", k-i, nearest[i]->id, nearest[i]->distance );
+    }
     
     // free the memory used to store the k nearest neighbours
     for( i = 0; i < k; i++ ) {
