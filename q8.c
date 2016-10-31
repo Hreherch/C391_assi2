@@ -15,6 +15,11 @@ int main( int argc, char **argv ) {
 
     int k = atoi( argv[3] );
     
+    if ( k <= 0 ) {
+        fprintf( stderr, "k must be an integer larger than 0.\n");
+        return( 1 );
+    }
+    
     findNearestNeighbour( search_point, k );
     
     return( 0 );
