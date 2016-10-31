@@ -20,3 +20,10 @@ A2.db: q0.txt q1.txt
 
 clean:
 	rm -f q4 q5 q7 q8 A2.db
+    
+QFiles = q0.txt q1.txt q2.pdf q3.txt q3db.txt q4.c q5.c q6.txt q7.c q8.c
+extra = NearestNeighbour.c NearestNeighbour.h
+SQLite = sqlite3.c sqlite3.h A2.db q3db.txt readme.txt Makefile
+    
+zip:
+	zip temp.zip $(QFiles) $(extra) $(LFFiles) $(SQLite)

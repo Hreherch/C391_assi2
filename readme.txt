@@ -74,6 +74,9 @@ q3.txt
     Contains SQL commands to list inner node MBRs. There is only one MBR node
     created. 
     
+q3db.txt
+    Contains SQL commands to create a r-Tree for the squares given in Q2.
+    
 q4.c
     prints a list of objects of a certian class and within a containing square.
     
@@ -81,7 +84,7 @@ q5.c
     prints the average query speed of r-Trees vs. indexes given a side length 
     of a square to randomly generate and query
     
-q6.c 
+q6.txt 
     The results of running q5 with L = {25, 50, 75, 100, 125} and the 
     conclusion thereof
     

@@ -109,7 +109,7 @@ int callback(void *data, int argc, char **argv, char **col_name) {
         }
         mindist( &(branchList[i]), p );
         
-        printf( "(callback): Get object/node %ld\n", branchList[i].id );
+        //printf( "(callback): Get object/node %ld\n", branchList[i].id );
         
         i++;
         
@@ -176,7 +176,7 @@ void pruneBranchList( nearestN **nearest, node *branchList, int last, int mode, 
         // prune branches with mindist > min_minmaxdist
         for( i = 0; i < last; i++ ) {
             if (branchList[i].minDist > min_minmaxdist ) {
-                printf( "downward pruned node %ld\n", branchList[i].id );
+                //printf( "downward pruned node %ld\n", branchList[i].id );
                 branchList[i].id = 0; // recall that we skip nodes with id==0 
             }
         }
@@ -194,7 +194,7 @@ void pruneBranchList( nearestN **nearest, node *branchList, int last, int mode, 
     if ( nearest[0]->distance != DBL_MAX ) { // cannot do it unless we have a furthest!
         for( i = 0; i < last; i++ ) {
             if ( branchList[i].minDist >= nearest[0]->distance ) {
-                printf( "upward pruned node %ld\n", branchList[i].id );
+                //printf( "upward pruned node %ld\n", branchList[i].id );
                 branchList[i].id = 0; // recall that we skip nodes with id==0 
             }
         }
