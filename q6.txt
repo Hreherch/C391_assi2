@@ -23,3 +23,9 @@ Parameter l: 125.000000
 Average runtime with r-tree: 0.012195ms
 Average runtime without r-tree: 9.046527ms
 
+It seems that as l increases the amount of time taken to find the total number
+of objects in a square of lxl size increases linearly with the size of l using
+standard SQlite indices of each of the individual Carteisan coordinates of the
+POIs. The R-tree index performs significantly better, performing the same task
+without a linearly increasing time, in fact, the time to perform the task 
+remains constant throughout the values of l. We conclude that the r-tree performs better in general for spacial data compared to regular indices. 
