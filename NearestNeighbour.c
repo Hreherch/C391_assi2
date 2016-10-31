@@ -146,11 +146,13 @@ int genBranchList( sqlite3 *db, point p, node parentNode, node *branchList ) {
  * = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
  */
 // prunes branch list accroding to 3 rules, depends on upward or downward mode ;)
-void pruneBranchList( nearestN **nearest, node *branchList, int last, int mode ) {
+void pruneBranchList( nearestN **nearest, node *branchList, int last, int mode, int k ) {
     // pruning type one.
     int i;
     
-    if( mode = DOWNWARD_PRUNE ) {
+    // METHOD 1
+    // if k > 1, then we cannot prune using this method 1
+    if( mode = DOWNWARD_PRUNE && k == 1 ) {
         // find the minimum minmaxDist in all nodes
         double min_minmaxdist = branchList[0].minmaxDist;
         for( i = 1; i < last; i++ ) {
@@ -159,8 +161,6 @@ void pruneBranchList( nearestN **nearest, node *branchList, int last, int mode )
             }
         } 
         
-        //printf( "found min_minmaxDist=%lf\n", min_minmaxdist );
-        
         // prune branches with mindist > min_minmaxdist
         for( i = 0; i < last; i++ ) {
             if (branchList[i].minDist > min_minmaxdist ) {
@@ -168,19 +168,26 @@ void pruneBranchList( nearestN **nearest, node *branchList, int last, int mode )
                 branchList[i].id = 0; // recall that we skip nodes with id==0 
             }
         }
-        
-        // we really don't understand the point of using the second downward pruning method
-        // because we already prune based on the smallest minmaxdist, which is essentially
-        // the same 
     }
     
-    // upward pruning based on object(s) found
-    for( i = 0; i < last; i++ ) {
-        if ( branchList[i].minDist > nearest[0]->distance ) {
-            branchList[i].id = 0; // recall that we skip nodes with id==0 
+    // METHOD 2
+    // This is probably the most poorly defined section of the paper. We will 
+    // remove objects as we encounter them and find them as better fits. If it 
+    // is suggesting to use minmaxdist as a limiter for where to look, that is
+    // a failure in the k>1 case, because it may prune too many things. This is 
+    // like a weird conjunction of rule one that only works in k=1. 
+    
+    // METHOD 3
+    // upward pruning based on object(s) found so far
+    if ( nearest[0]->distance != DBL_MAX ) { // cannot do it unless we have a furthest!
+        for( i = 0; i < last; i++ ) {
+            if ( branchList[i].minDist > nearest[0]->distance ) {
+                branchList[i].id = 0; // recall that we skip nodes with id==0 
+            }
         }
     }
 }
+
 
 /* = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
  * Function: 
@@ -203,7 +210,7 @@ void newNearest( nearestN **nearest, node newObject, int k ) {
     
     nearest[i]->id = newObject.id;
     nearest[i]->distance = newObject.minDist;
-    printf( "new nearest id: %ld with distance: %lf\n", nearest[i]->id, nearest[i]->distance );
+    //printf( "new nearest id: %ld with distance: %lf\n", nearest[i]->id, nearest[i]->distance );
 }
 
 /* = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
@@ -230,7 +237,7 @@ void nearestNeighbourSearch( sqlite3 *db,       /* The database for the R-Tree *
     branchList[0].minDist = p.x;
     branchList[0].minmaxDist = p.y;
     
-    printf( "exploring node: %ld\n", currentNode.id );
+    //printf( "exploring node: %ld\n", currentNode.id );
     
     // get the objects or children node(s) of the currentNode
     last = genBranchList( db, p, currentNode, branchList );
@@ -241,7 +248,7 @@ void nearestNeighbourSearch( sqlite3 *db,       /* The database for the R-Tree *
         for( i = 0; i < last; i++ ) {
             // get the distance of the object and see if it's smaller than the current largest distance of objects.
             double dist = branchList[i].minDist;
-            if ( dist < nearest[0]->distance ) {
+            if ( dist <= nearest[0]->distance ) {
                 newNearest( nearest, branchList[i], k );
             }
         }
@@ -252,7 +259,7 @@ void nearestNeighbourSearch( sqlite3 *db,       /* The database for the R-Tree *
         qsort( branchList, last, sizeof( node ), compareFunct );
         
         // prune DOWNWARD
-        pruneBranchList( nearest, branchList, last, DOWNWARD_PRUNE );
+        pruneBranchList( nearest, branchList, last, DOWNWARD_PRUNE, k );
             
         // visit children nodes in branchList
         for( i = 0; i < 51; i++ ) {
@@ -266,10 +273,10 @@ void nearestNeighbourSearch( sqlite3 *db,       /* The database for the R-Tree *
             nearestNeighbourSearch( db, branchList[i], p, nearest, k );
         
             // prune UPWARD
-            pruneBranchList( nearest, branchList, last, UPWARD_PRUNE );
+            pruneBranchList( nearest, branchList, last, UPWARD_PRUNE, k );
             
         } // For (children in currentNode)
-        printf( "done exploring %ld's children\n", currentNode.id );
+        //printf( "done exploring %ld's children\n", currentNode.id );
     }
 }
 
