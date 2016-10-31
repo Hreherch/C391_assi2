@@ -1,10 +1,7 @@
--- CREATE VIRTUAL TABLE <name> USING rtree( <column_names> );
-
+-- Commands for creating tables and provided data into SQLite.
 .separator "\t"
-
 DROP TABLE IF EXISTS poi;
 DROP TABLE IF EXISTS poi_tag;
-DROP TABLE IF EXISTS projected_poi;
 
 CREATE TABLE poi( id INT PRIMARY KEY,
                   uid INT,
@@ -15,17 +12,17 @@ CREATE TABLE poi_tag( id INT REFERENCES poi( id ),
                       key TEXT,
                       value TEXT );
 
-.schema
-
 .import poi.tsv poi
 .import poi_tag.tsv poi_tag
 
+
+/* We've included q1.txt below for the convenience of reading a single file to CREATE the database. Also available seperately in q1.txt */
+DROP TABLE IF EXISTS projected_poi;
  CREATE VIRTUAL TABLE projected_poi USING rtree(
      id,
      minX FLOAT(10), maxX FLOAT(10),
      minY FLOAT(10), maxY FLOAT(10) );
 
-.schema
 
 -- From forums: 1 degree lat = 111191m => 10m = 10/111191 degrees lat
 -- From forums: 1 degree long = 74539m => 10m = 10/74539 degrees long
@@ -36,7 +33,7 @@ INSERT INTO projected_poi
            (lat - 48.06 - (10.0/111191.0)) * (1000.0/.189), 
            ((lat - 48.06) * (1000.0/.189))
     FROM poi;
-
+.schema
 
 
 
