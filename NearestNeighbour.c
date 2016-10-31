@@ -1,10 +1,10 @@
 #include "NearestNeighbour.h"
 
 /* = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
- * Function: 
+ * Function: compareFunct
  * = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+ * used to sort the nodes based on minDist. 
  */
-// quicksort function to sort branchList
 int compareFunct( const void *a, const void *b ) {
     double temp = (((node*)a)->minDist - ((node*)b)->minDist);
     if ( temp < 0 ) { return -1; }
@@ -13,13 +13,13 @@ int compareFunct( const void *a, const void *b ) {
 }
 
 /* = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
- * Function: 
+ * Function: minmaxDist
  * = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+ * calculates minmaxdist for a node and puts the information inside the node.
  */
-// calculates minmaxdist for a node and puts the information inside the node.
 void minmaxDist( node *aNode, point p ) {
     // Do not need to worry about summation, as n=2. There is only two eqns to calculate,
-    // iteratively selecting them would have taken the same amount of work. 
+    // iteratively selecting them would have taken the same amount of work (possibly more). 
     
     double rect_centerX = (aNode->minX + aNode->maxX) / 2;
     double rect_centerY = (aNode->minY + aNode->maxY) / 2;
@@ -44,11 +44,11 @@ void minmaxDist( node *aNode, point p ) {
 }
 
 /* = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
- * Function: 
+ * Function: mindist
  * = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+ * calculates mindist (which is also the mindist between any rectangle and a point)
+ * for either a node or a object (which uses the same type as node)
  */
-// calculates mindist (which is also the mindist between any rectangle and a point)
-// for either a node or a object (which uses the same type as node)
 void mindist( node *aNode, point p ) {
     double mindist = 0;
     int i;
@@ -70,11 +70,13 @@ void mindist( node *aNode, point p ) {
    
     aNode->minDist = (sum1 * sum1) + (sum2 * sum2);
     //printf( "mindist=%lf\n", aNode->minDist );
-}
+} // mindist
 
 /* = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
- * Function: 
+ * Function: callback
  * = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+ * A sqlite3 callback for sqlite3_exec. This function gets the result of
+ * rtreenode and parses it with strtok. Creating a branchList (passed as void*).
  */
 // Populates the branchList (void *data) with information from the rtree node query
 int callback(void *data, int argc, char **argv, char **col_name) {
@@ -98,6 +100,7 @@ int callback(void *data, int argc, char **argv, char **col_name) {
                 &(branchList[i].id), &(branchList[i].minX), 
                 &(branchList[i].maxX), &(branchList[i].minY), 
                 &(branchList[i].maxY) );
+                
         
         // on objects we only calculate mindist, so skip the calculation of minmaxdist
         // (because this equals the distance to the rectangle)
@@ -106,6 +109,7 @@ int callback(void *data, int argc, char **argv, char **col_name) {
         }
         mindist( &(branchList[i]), p );
         
+        printf( "(callback): Get object/node %ld\n", branchList[i].id );
         
         i++;
         
@@ -113,15 +117,19 @@ int callback(void *data, int argc, char **argv, char **col_name) {
     }
     
     return 0;
-}
+} // callback
 
 
 /* = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
- * Function: 
+ * Function: genBranchList
  * = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+ * Generates a branch list for the given node using SQLite.
+ * Makes use of the void* argument given to sqlite3_exec to pass the branchList
  */
-int genBranchList( sqlite3 *db, point p, node parentNode, node *branchList ) {
-    // TODO make this the general case of nodeno, use node.nodeno instaead of 1
+int genBranchList( sqlite3 *db,         /* sqlite db pointer to the rTree databbase. */
+                   point p,             /* a point in a cartesian grid i.e. (x,y) */
+                   node parentNode,     /* The node that we are getting the children of */
+                   node *branchList ) { /* A branchList, to hold all current children */
     char *sql_str = "SELECT rtreenode(2, data) FROM projected_poi_node WHERE nodeno = %d;";
     char sqlStr_buffer[200] = {};
     int i;
@@ -131,28 +139,32 @@ int genBranchList( sqlite3 *db, point p, node parentNode, node *branchList ) {
     // execute the query 
     sqlite3_exec(db, sqlStr_buffer, callback, branchList, NULL);
     
-    // return the number of nodes generated
+    // (counter): return the number of nodes generated
     for ( i = 0; i < 51; i++ ) {
         if( branchList[i].id == 0 ) {
             return i;
         }
     }
-    // b/c branchList[50].id may not be 0 => there are 51 elements. (i+1 = 51 here)
-    return i + 1;
-} 
+    // (i = 51 here)
+    // printf( "returning %d nodes/objects.\n", i );
+    return i;
+} // genBranchList
 
 /* = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
- * Function: 
+ * Function: pruneBranchList
  * = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+ * Uses the rules in Roussoupoulos' paper to remove nodes that do not contain 
+ * potential nearest neigbours for the query point. Attempts to be efficient
+ * by not doubling work for a node. 
  */
-// prunes branch list accroding to 3 rules, depends on upward or downward mode ;)
 void pruneBranchList( nearestN **nearest, node *branchList, int last, int mode, int k ) {
     // pruning type one.
     int i;
     
-    // METHOD 1
+    // PRUNING METHOD 1
     // if k > 1, then we cannot prune using this method 1
-    if( mode = DOWNWARD_PRUNE && k == 1 ) {
+    // Also pointless to do this twice for the same node. 
+    if( mode == DOWNWARD_PRUNE && k == 1 ) {
         // find the minimum minmaxDist in all nodes
         double min_minmaxdist = branchList[0].minmaxDist;
         for( i = 1; i < last; i++ ) {
@@ -164,36 +176,42 @@ void pruneBranchList( nearestN **nearest, node *branchList, int last, int mode, 
         // prune branches with mindist > min_minmaxdist
         for( i = 0; i < last; i++ ) {
             if (branchList[i].minDist > min_minmaxdist ) {
-                //printf( "pruned node %ld\n", branchList[i].id );
+                printf( "downward pruned node %ld\n", branchList[i].id );
                 branchList[i].id = 0; // recall that we skip nodes with id==0 
             }
         }
     }
     
-    // METHOD 2
+    // PRUNING METHOD 2
     // This is probably the most poorly defined section of the paper. We will 
     // remove objects as we encounter them and find them as better fits. If it 
     // is suggesting to use minmaxdist as a limiter for where to look, that is
     // a failure in the k>1 case, because it may prune too many things. This is 
     // like a weird conjunction of rule one that only works in k=1. 
     
-    // METHOD 3
+    // PRUNING METHOD 3
     // upward pruning based on object(s) found so far
     if ( nearest[0]->distance != DBL_MAX ) { // cannot do it unless we have a furthest!
         for( i = 0; i < last; i++ ) {
-            if ( branchList[i].minDist > nearest[0]->distance ) {
+            if ( branchList[i].minDist >= nearest[0]->distance ) {
+                printf( "upward pruned node %ld\n", branchList[i].id );
                 branchList[i].id = 0; // recall that we skip nodes with id==0 
             }
         }
     }
-}
+} // pruneBranchList
 
 
 /* = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
- * Function: 
+ * Function: newNearest
  * = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+ * Adds a new nearest node to an array of k nearest nodes by pushing
+ * each element back one space until a spot is created to fit the new nearest.
+ * In the process the old farthest node is deleted. 
  */
-void newNearest( nearestN **nearest, node newObject, int k ) {
+void newNearest( nearestN **nearest, /* An array of nearest neighbours */
+                 node newObject,     /* A new object for the nearest neighbour list */
+                 int k ) {           /* k, number of nearest neighbours requested */
     int i = 0;
     
     for ( i = 0; i < k; i++ ) {
@@ -207,15 +225,18 @@ void newNearest( nearestN **nearest, node newObject, int k ) {
             break;
         }
     }
-    
+   
     nearest[i]->id = newObject.id;
     nearest[i]->distance = newObject.minDist;
-    //printf( "new nearest id: %ld with distance: %lf\n", nearest[i]->id, nearest[i]->distance );
-}
+} // newNearest
+
 
 /* = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
- * Function: 
+ * Function: nearestNeighbourSearch
  * = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+ * A recursive function based on Roussoupoulos' kNN paper. Each call to this
+ * function finds child nodes/objects and "prunes" them based on axioms to 
+ * speed up searching the tree (not having to load pointless blocks of data).
  */
 void nearestNeighbourSearch( sqlite3 *db,       /* The database for the R-Tree */
                            node currentNode,    /* The current node being explored */
@@ -231,8 +252,9 @@ void nearestNeighbourSearch( sqlite3 *db,       /* The database for the R-Tree *
     int i = 0;
     
     /*
-     * This is really hacky (sorry). We're going to calculate the mindist and 
-     * minmaxdist while we run the SQL query, please see the callback function.
+     * We're going to calculate the mindist and minmaxdist while we run the SQL query, 
+     * please see the callback function for how we extract this information (the point
+     * co-ordinates). 
      */
     branchList[0].minDist = p.x;
     branchList[0].minmaxDist = p.y;
@@ -246,13 +268,14 @@ void nearestNeighbourSearch( sqlite3 *db,       /* The database for the R-Tree *
     if ( branchList[0].id > 2000 ) {
         // for child in Node:
         for( i = 0; i < last; i++ ) {
-            // get the distance of the object and see if it's smaller than the current largest distance of objects.
+            // get the distance of the object and see if it's smaller than the 
+            // current largest distance of objects.
             double dist = branchList[i].minDist;
             if ( dist <= nearest[0]->distance ) {
                 newNearest( nearest, branchList[i], k );
             }
         }
-        return; // nothing else to do in leaf node.
+        return; // nothing else to do in leaf node, return up.
     }
     // Non-base case: not leaf node. (order, prune, then visit)
     else { 
@@ -278,13 +301,19 @@ void nearestNeighbourSearch( sqlite3 *db,       /* The database for the R-Tree *
         } // For (children in currentNode)
         //printf( "done exploring %ld's children\n", currentNode.id );
     }
-}
+    
+} // nearestNeighbourSearch
+
 
 /* = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
- * Function: 
+ * Function: findNearestNeighbour
  * = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+ * Initial call to the NearestNeighbour.c file. Passing in a query_point, 
+ * and specifying k, one can find the k-nearest objects in the r-Tree to the
+ * query point.
  */
-void findNearestNeighbour( point query_point, int k ) {
+void findNearestNeighbour( point query_point, /* a point (x,y) to find neighbours of */
+                           int k ) {          /* the number of nearest neighbours to print */
     node rootNode = {};
     sqlite3 *db;
     nearestN **nearest;
@@ -298,7 +327,7 @@ void findNearestNeighbour( point query_point, int k ) {
         nearest[i]->distance = DBL_MAX;
     }
     
-    // init parent node, don't really need this but y'know why not
+    // init parent node, values are arbitrary
     rootNode.id = 1;
     rootNode.minX = 0; rootNode.maxX = 1000; 
     rootNode.minY = 0; rootNode.maxY = 1000;
@@ -323,5 +352,7 @@ void findNearestNeighbour( point query_point, int k ) {
         free( nearest[i] );
     }
     free( nearest );
-}
     
+    sqlite3_close( db );
+    
+} // findNearestNeighbour
