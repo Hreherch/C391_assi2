@@ -10,5 +10,5 @@ ORDER BY SRid.nodeno DESC;
 /* 
 Line 160163 of SQLite, M = 51, therefore all 14 rectangles from Q2 fit
 into one node. Our tree is different because M = 4, and we need 
-at least ceil(14/4) [4] nodes.
+at least ceil(14/4) [4] nodes whereas sqlite only needs 1.
 */ 
