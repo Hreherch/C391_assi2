@@ -5,6 +5,7 @@
 
 #define DB_NAME "A2.db"
 
+// Creates the index used to test vs the rtree
 void makeCartesianIndex( sqlite3 *db ) {
     char *sql_str = "DROP TABLE IF EXISTS projected_poI_regTable;\
                      DROP INDEX IF EXISTS poi_index;\
@@ -21,6 +22,8 @@ void makeCartesianIndex( sqlite3 *db ) {
     sqlite3_exec( db, sql_str, NULL, NULL, NULL );
 }
 
+/* Creates the table of the generated rectangle containing all of its POIs
+using the rtree to test */
 double rTree_test( sqlite3 *db, double minX, double maxX, double maxY, double minY ) {
     clock_t start, end;
     char sql_buffer[1000] = {};
@@ -43,6 +46,7 @@ double rTree_test( sqlite3 *db, double minX, double maxX, double maxY, double mi
     return (double) (end - start) / CLOCKS_PER_SEC;
 }
 
+// Makes the random squares with dimensions l x l
 void makeSquares( double **squares, double length ) {
     int i = 0;
     for (i = 0; i < 100; i++ ) {
@@ -62,7 +66,6 @@ void makeSquares( double **squares, double length ) {
         squares[i][1] = maxX;
         squares[i][2] = minY;
         squares[i][3] = maxY;
-        //printf( "made sqr: \n\tminX:%lf\n\tmaxX:%lf\n\tminY%lf\n\tmaxY:%lf\n", minX, maxX, minY, maxY );
     }
 }
 
@@ -73,6 +76,8 @@ void freeSquares( double **squares ) {
     }
 }
 
+/* Creates the table of the generated rectangle containing all of its POIs
+using the indices to test */
 double index_test( sqlite3 *db, double minX, double maxX, double maxY, double minY ) {
     clock_t start, end;
     char sql_buffer[1000] = {};
@@ -87,6 +92,7 @@ double index_test( sqlite3 *db, double minX, double maxX, double maxY, double mi
 
     sprintf( sql_buffer, sql_str, minX, maxX, minY, maxY );
 
+    // Time
     start = clock();
     sqlite3_exec( db, sql_buffer, NULL, NULL, NULL );
     end = clock();
@@ -94,6 +100,8 @@ double index_test( sqlite3 *db, double minX, double maxX, double maxY, double mi
     return (double) (end - start) / CLOCKS_PER_SEC;
 }
 
+/* Main will run the rtree and index benchmark squares 20 times each, 100 times
+*/
 int main( int argc, char **argv ) {
     sqlite3 *db;
     //sqlite3_stmt *sql_stmt;
@@ -141,7 +149,6 @@ int main( int argc, char **argv ) {
             double maxX = squares[j][1];
             double minY = squares[j][2];
             double maxY = squares[j][3];
-            //printf( "testing: %lf", minY );
             rTree_squareTime[j] += rTree_test( db, minX, maxX, maxY, minY );
 
             index_squareTime[j] += index_test( db, minX, maxX, maxY, minY );
@@ -161,8 +168,6 @@ int main( int argc, char **argv ) {
     indexAvgTime /= 100;
     
     freeSquares( squares );
-
-    //printf( "%lf, %lf\n", rTreeAvgTime, indexAvgTime );
 
     printf( "\nParameter l: %lf\n\n", length);
     printf( "Average runtime with r-tree: %lfms\n\n", rTreeAvgTime*1000 );
