@@ -1,4 +1,4 @@
-all: q4 q5 q7 q8 A2.db
+all: q4 q5 q7 q8
 
 q3: q3db.txt
 	./sqlite3 q3db.db < q3db.txt
